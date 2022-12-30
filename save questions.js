@@ -131,9 +131,9 @@ let study_years = [
         term_id: 1,
         added: false,
         subjects: [
-            {
-                safwa_name: "التربية والسلوك الفصل الدراسي الأول للفرقة الرابعة",
-                form_url: "https://docs.google.com/forms/d/15tO312wAD-mOzWKGoibor_QLe0Pymv5_CCJ_aJrk-5Y/edit" },
+            // {
+            //     safwa_name: "التربية والسلوك الفصل الدراسي الأول للفرقة الرابعة",
+            //     form_url: "https://docs.google.com/forms/d/15tO312wAD-mOzWKGoibor_QLe0Pymv5_CCJ_aJrk-5Y/edit" },
             {
                 safwa_name: "العقيدة الفصل الدراسي الأول للفرقة الرابعة",
                 form_url: "https://docs.google.com/forms/d/1NGkLEHZhsgzKReJVlhe2JHHAuMK6gZOx6mm3cqKyBfg/edit" },
@@ -178,6 +178,7 @@ function main() {
 }
 
 function extractForms() {
+    insertHeader()
     study_years.forEach(study_year => {
         Logger.log(study_year.name)
         study_year.subjects.forEach(subject => {
@@ -231,7 +232,6 @@ function extractFormQuestions(studyYearSubjects, subject) {
     let ssNewUrl = SpreadsheetApp.create(form.getTitle()).getUrl()
     var sheet = SpreadsheetApp.openByUrl(ssNewUrl).getSheets()[0]
 
-    insertHeader(sheet)
     form.getItems().forEach((item) => {
         switch (item.getType()) {
             case FormApp.ItemType.MULTIPLE_CHOICE:
