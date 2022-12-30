@@ -181,7 +181,6 @@ function extractForms() {
     study_years.forEach(study_year => {
         Logger.log(study_year.name)
         study_year.subjects.forEach(subject => {
-            question_row = 1
             extractFormQuestions(study_year, subject)
         })
         Logger.log("Done")
