@@ -1,11 +1,11 @@
-let fst_year_fst_term_xls = {
+let fst_year_fst_term_subjects = {
     study_year_id: 1,
     term_id: 1,
     subjects: [
         {
             name: "العقيدة",
             form_url: "https://docs.google.com/forms/d/1Gqqtw34JkaODRZHXKGmW_untLYWq8-lhU8_hM62PapA/edit?usp=forms_home&ths=true",
-            safwa_id: 1
+            safwa_id: 1,
         }
     ]
 }
@@ -14,19 +14,15 @@ let fst_year_fst_term_xls = {
 let question_row = 1
 let right_answer_index = 17
 
-function createNewSpreadSheet(name) {
-    return SpreadsheetApp.create(name).getUrl();
-}
-
 // main function to run
 function main() {
     extractForms()
 }
 
 function extractForms() {
-    fst_year_fst_term_xls.subjects.forEach(subject => {
+    fst_year_fst_term_subjects.subjects.forEach( subject => {
         question_row = 1
-        extractFormQuestions(subject)
+        extractFormQuestions(fst_year_fst_term_subjects, subject)
     })
 }
 
@@ -67,7 +63,7 @@ function insertHeader(sheet) {
 }
 
 // Iterate over all questions
-function extractFormQuestions(subject) {
+function extractFormQuestions(studyYearSubjects, subject) {
     let form = FormApp.openById(getFormId(subject.form_url))
     //create new spreadsheet with form name
     let ssNewUrl = SpreadsheetApp.create(form.getTitle()).getUrl()
@@ -77,17 +73,17 @@ function extractFormQuestions(subject) {
     form.getItems().forEach((item) => {
         switch (item.getType()) {
             case FormApp.ItemType.MULTIPLE_CHOICE:
-                insertMul(sheet, item.asMultipleChoiceItem())
+                insertMul(sheet, studyYearSubjects, item.asMultipleChoiceItem())
                 break
             case FormApp.ItemType.CHECKBOX:
-                insertCheckBoxQuestion(sheet, item.asCheckboxItem())
+                insertCheckBoxQuestion(sheet, studyYearSubjects, item.asCheckboxItem())
                 break
         }
     })
     Logger.log(ssNewUrl)
 }
 
-function addRowBasicInfo(sheet, column, title, points) {
+function addRowBasicInfo(sheet, column, studyYearSubjects, title, points) {
     //title
     sheet.getRange(question_row, column++).setValue(title)
     //points
@@ -95,17 +91,17 @@ function addRowBasicInfo(sheet, column, title, points) {
     //lesson or subject
     sheet.getRange(question_row, column++).setValue("subject")
     //path
-    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.study_year_id)
+    sheet.getRange(question_row, column++).setValue(studyYearSubjects.study_year_id)
     //term
-    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.term_id)
+    sheet.getRange(question_row, column++).setValue(studyYearSubjects.term_id)
     //subject
-    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.subjects[0].name)
+    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_subjects.subjects[0].name)
     //lesson
     sheet.getRange(question_row, column++).setValue("")
     return column;
 }
 
-function insertMul(sheet, question) {
+function insertMul(sheet, studyYearSubjects, question) {
     let column = 1
     let type = "MULTIPLE_CHOICE"
     let points = question.getPoints()
@@ -131,7 +127,7 @@ function insertMul(sheet, question) {
     title = formatQuestionTitle(title)
     let choices = question.getChoices()
 
-    column = addRowBasicInfo(sheet, column, title, points);
+    column = addRowBasicInfo(sheet, column, studyYearSubjects, title, points);
 
     if (choices.length === 2) {
         if ((choices[0].getValue().includes("صح") && choices[1].getValue().includes("خطأ")) ||
@@ -159,7 +155,7 @@ function insertMul(sheet, question) {
     question_row++
 }
 
-function insertCheckBoxQuestion(sheet, question) {
+function insertCheckBoxQuestion(sheet, studyYearSubjects, question) {
     let coloumn = 1
     let title = formatQuestionTitle(question.getTitle())
     let points = question.getPoints()
@@ -170,7 +166,7 @@ function insertCheckBoxQuestion(sheet, question) {
     let type = "CHECKBOX"
     let choices = question.getChoices()
 
-    coloumn = addRowBasicInfo(sheet, coloumn, title, points);
+    coloumn = addRowBasicInfo(sheet, coloumn, studyYearSubjects, title, points);
     //question type
     sheet.getRange(question_row, coloumn++).setValue(type)
     //description
