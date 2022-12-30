@@ -257,6 +257,7 @@ let study_years = [
         ]
     },]
 
+let sheet = SpreadsheetApp.openById('1pudIQM8NJph3wsQuPq6kbKgT-a0Ef9czbXSm4n-atHE').getSheets()[0]
 // variables for putting the questions and answers in the right position
 let question_row = 1
 let right_answer_index = 17
@@ -279,7 +280,7 @@ function extractForms() {
 
 
 //insert header
-function insertHeader(sheet) {
+function insertHeader() {
     let column = 1
     //title
     sheet.getRange(question_row, column++).setValue("title")
@@ -313,6 +314,7 @@ function insertHeader(sheet) {
     question_row++
 }
 
+
 // Iterate over all questions
 function extractFormQuestions(studyYearSubjects, subject) {
     let form = FormApp.openById(getFormId(subject.form_url))
@@ -324,17 +326,17 @@ function extractFormQuestions(studyYearSubjects, subject) {
     form.getItems().forEach((item) => {
         switch (item.getType()) {
             case FormApp.ItemType.MULTIPLE_CHOICE:
-                insertMul(sheet, studyYearSubjects, subject, item.asMultipleChoiceItem())
+                insertMul( studyYearSubjects, subject, item.asMultipleChoiceItem())
                 break
             case FormApp.ItemType.CHECKBOX:
-                insertCheckBoxQuestion(sheet, studyYearSubjects, subject, item.asCheckboxItem())
+                insertCheckBoxQuestion(studyYearSubjects, subject, item.asCheckboxItem())
                 break
         }
     })
-    Logger.log(subject.safwa_name + ": " + ssNewUrl)
+    Logger.log(subject.safwa_name)
 }
 
-function addRowBasicInfo(sheet, column, studyYearSubjects, subject, title, points) {
+function addRowBasicInfo( column, studyYearSubjects, subject, title, points) {
     //title
     sheet.getRange(question_row, column++).setValue(title)
     //points
@@ -352,7 +354,7 @@ function addRowBasicInfo(sheet, column, studyYearSubjects, subject, title, point
     return column;
 }
 
-function insertMul(sheet, studyYearSubjects, subject, question) {
+function insertMul( studyYearSubjects, subject, question) {
     let column = 1
     let type = 1
     let points = question.getPoints()
@@ -378,7 +380,7 @@ function insertMul(sheet, studyYearSubjects, subject, question) {
     title = formatQuestionTitle(title)
     let choices = question.getChoices()
 
-    column = addRowBasicInfo(sheet, column, studyYearSubjects, subject, title, points);
+    column = addRowBasicInfo( column, studyYearSubjects, subject, title, points);
 
     if (choices.length === 2) {
         if ((choices[0].getValue().includes("صح") && choices[1].getValue().includes("خطأ")) ||
@@ -390,7 +392,7 @@ function insertMul(sheet, studyYearSubjects, subject, question) {
             sheet.getRange(question_row, column++).setValue("")
             //choices count
             sheet.getRange(question_row, column++).setValue("")
-            addBinaryChoice(sheet, choices);
+            addBinaryChoice( choices);
             return
         }
     }
@@ -402,7 +404,7 @@ function insertMul(sheet, studyYearSubjects, subject, question) {
     sheet.getRange(question_row, column++).setValue("")
     //choices count
     sheet.getRange(question_row, column++).setValue(choices.length)
-    addMultipleChoices(sheet, column, choices);
+    addMultipleChoices( column, choices);
     question_row++
 }
 
@@ -417,7 +419,7 @@ function insertCheckBoxQuestion(sheet, studyYearSubjects, subject, question) {
     let type = 4
     let choices = question.getChoices()
 
-    coloumn = addRowBasicInfo(sheet, coloumn, studyYearSubjects, subject, title, points);
+    coloumn = addRowBasicInfo( coloumn, studyYearSubjects, subject, title, points);
     //question type
     sheet.getRange(question_row, coloumn++).setValue(type)
     //description
@@ -430,7 +432,7 @@ function insertCheckBoxQuestion(sheet, studyYearSubjects, subject, question) {
     question_row++
 }
 
-function addBinaryChoice(sheet, choices) {
+function addBinaryChoice( choices) {
     choices.forEach(function (choice) {
         if (choice.isCorrectAnswer()) {
             if (choice.getValue().includes("صح")) {
@@ -457,7 +459,7 @@ function addCheckBoxChoice(sheet, coloumn, choices) {
     }
 }
 
-function addMultipleChoices(sheet, column, choices) {
+function addMultipleChoices( column, choices) {
     choices.forEach(function (choice, index) {
         sheet.getRange(question_row, column++).setValue(choice.getValue())
         if (choice.isCorrectAnswer()) {
