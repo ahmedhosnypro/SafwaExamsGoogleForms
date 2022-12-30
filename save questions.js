@@ -1,198 +1,226 @@
-let fst_year_forms = {
-    aqida: "1Gqqtw34JkaODRZHXKGmW_untLYWq8-lhU8_hM62PapA",
-}
 let fst_year_fst_term_xls = {
     study_year_id: 1,
     term_id: 1,
     subjects: [
         {
             name: "العقيدة",
-            sheet_id: "1ym5xf67pp_A4nrR648cI-6Uvy2c_K0V97FrppBSbCBc"
+            form_url: "https://docs.google.com/forms/d/1Gqqtw34JkaODRZHXKGmW_untLYWq8-lhU8_hM62PapA/edit?usp=forms_home&ths=true",
+            safwa_id: 1
         }
     ]
 }
 
-let form = FormApp.openById(fst_year_forms.aqida);
-// Open a sheet by ID.
-let sheet = SpreadsheetApp.openById(fst_year_fst_term_xls.subjects[0].sheet_id).getSheets()[0];
-
-let formName = form.getTitle()
-
 // variables for putting the questions and answers in the right position
-let question_position = 1;
+let question_row = 1
 let right_answer_index = 17
 
-// main function to run
-function getFormValues() {
-    form.getItems().forEach(callback);
+function createNewSpreadSheet(name) {
+    return SpreadsheetApp.create(name).getUrl();
 }
 
-{
-    let answers_position = 1;
+// main function to run
+function main() {
+    extractForms()
+}
 
+function extractForms() {
+    fst_year_fst_term_xls.subjects.forEach(subject => {
+        question_row = 1
+        extractFormQuestions(subject)
+    })
+}
+
+
+//insert header
+function insertHeader(sheet) {
+    let column = 1
     //title
-    sheet.getRange(question_position, answers_position++).setValue("title");
+    sheet.getRange(question_row, column++).setValue("title")
     //points
-    sheet.getRange(question_position, answers_position++).setValue("points");
+    sheet.getRange(question_row, column++).setValue("points")
     //lesson or subject
-    sheet.getRange(question_position, answers_position++).setValue("lesson or subject");
+    sheet.getRange(question_row, column++).setValue("lesson or subject")
     //path
-    sheet.getRange(question_position, answers_position++).setValue("path");
+    sheet.getRange(question_row, column++).setValue("path")
     //term
-    sheet.getRange(question_position, answers_position++).setValue("TERM");
+    sheet.getRange(question_row, column++).setValue("TERM")
     //subject
-    sheet.getRange(question_position, answers_position++).setValue("subject");
+    sheet.getRange(question_row, column++).setValue("subject")
     //lesson
-    sheet.getRange(question_position, answers_position++).setValue("lesson");
+    sheet.getRange(question_row, column++).setValue("lesson")
     //question type
-    sheet.getRange(question_position, answers_position++).setValue("type");
+    sheet.getRange(question_row, column++).setValue("type")
     //description
-    sheet.getRange(question_position, answers_position++).setValue("description");
+    sheet.getRange(question_row, column++).setValue("description")
     //choices count
-    sheet.getRange(question_position, answers_position++).setValue("choices count");
+    sheet.getRange(question_row, column++).setValue("choices count")
     //coices
-    sheet.getRange(question_position, answers_position++).setValue("choice1");
-    sheet.getRange(question_position, answers_position++).setValue("choice2");
-    sheet.getRange(question_position, answers_position++).setValue("choice3");
-    sheet.getRange(question_position, answers_position++).setValue("choice4");
-    sheet.getRange(question_position, answers_position++).setValue("choice5");
-    sheet.getRange(question_position, answers_position++).setValue("choice6");
+    sheet.getRange(question_row, column++).setValue("choice1")
+    sheet.getRange(question_row, column++).setValue("choice2")
+    sheet.getRange(question_row, column++).setValue("choice3")
+    sheet.getRange(question_row, column++).setValue("choice4")
+    sheet.getRange(question_row, column++).setValue("choice5")
+    sheet.getRange(question_row, column++).setValue("choice6")
     //right answer
-    sheet.getRange(question_position, answers_position++).setValue("answer");
-    question_position++;
+    sheet.getRange(question_row, column++).setValue("answer")
+    question_row++
 }
 
 // Iterate over all questions
-function callback(el) {
-    let answers_position = 1;
-    let question;
-    let title;
-    let choices;
-    let type = el.getType()
-    let points;
-    switch (el.getType()) {
-        case FormApp.ItemType.MULTIPLE_CHOICE:
-            type = "MULTIPLE_CHOICE"
-            question = el.asMultipleChoiceItem();
-            points = question.getPoints();
-            if (points === 0) {
-                return;
-            }
-            title = question.getTitle();
+function extractFormQuestions(subject) {
+    let form = FormApp.openById(getFormId(subject.form_url))
+    //create new spreadsheet with form name
+    let ssNewUrl = SpreadsheetApp.create(form.getTitle()).getUrl()
+    var sheet = SpreadsheetApp.openByUrl(ssNewUrl).getSheets()[0]
 
-        {
-            if (title === "المذهب" ||
-                title === "تأكدت من كتابة البريد الإلكتروني صحيحًا" ||
-                title === "تأكدت من كتابة الاسم كاملًا كما هو في الأوراق الرسمية باللغة العربية" ||
-                title === "تأكدت من كتابة الرقم الجامعي كما هو في الأوراق الرسمية" ||
-                title === "دخولك الاختبار أكثر من مرة يعرضك لخسارة جميع علاماتك" ||
-                title === "أتعهد بعدم فتح الكتاب أو أي مصدر آخر أثناء الاختبار، وعدم نشر أو مناقشة أسئلة الاختبار إلا بعد انتهاء الوقت المحدد  والله على ما أقول  شهيد." ||
-                title === "النوع"
-            ) {
-                return;
+    insertHeader(sheet)
+    form.getItems().forEach((item) => {
+        switch (item.getType()) {
+            case FormApp.ItemType.MULTIPLE_CHOICE:
+                insertMul(sheet, item.asMultipleChoiceItem())
+                break
+            case FormApp.ItemType.CHECKBOX:
+                insertCheckBoxQuestion(sheet, item.asCheckboxItem())
+                break
+        }
+    })
+    Logger.log(ssNewUrl)
+}
+
+function addRowBasicInfo(sheet, column, title, points) {
+    //title
+    sheet.getRange(question_row, column++).setValue(title)
+    //points
+    sheet.getRange(question_row, column++).setValue(points)
+    //lesson or subject
+    sheet.getRange(question_row, column++).setValue("subject")
+    //path
+    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.study_year_id)
+    //term
+    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.term_id)
+    //subject
+    sheet.getRange(question_row, column++).setValue(fst_year_fst_term_xls.subjects[0].name)
+    //lesson
+    sheet.getRange(question_row, column++).setValue("")
+    return column;
+}
+
+function insertMul(sheet, question) {
+    let column = 1
+    let type = "MULTIPLE_CHOICE"
+    let points = question.getPoints()
+    if (points === 0) {
+        return
+    }
+
+    let title = question.getTitle()
+
+    {
+        if (title === "المذهب" ||
+            title === "تأكدت من كتابة البريد الإلكتروني صحيحًا" ||
+            title === "تأكدت من كتابة الاسم كاملًا كما هو في الأوراق الرسمية باللغة العربية" ||
+            title === "تأكدت من كتابة الرقم الجامعي كما هو في الأوراق الرسمية" ||
+            title === "دخولك الاختبار أكثر من مرة يعرضك لخسارة جميع علاماتك" ||
+            title === "أتعهد بعدم فتح الكتاب أو أي مصدر آخر أثناء الاختبار، وعدم نشر أو مناقشة أسئلة الاختبار إلا بعد انتهاء الوقت المحدد  والله على ما أقول  شهيد." ||
+            title === "النوع"
+        ) {
+            return
+        }
+    }
+
+    title = formatQuestionTitle(title)
+    let choices = question.getChoices()
+
+    column = addRowBasicInfo(sheet, column, title, points);
+
+    if (choices.length === 2) {
+        if ((choices[0].getValue().includes("صح") && choices[1].getValue().includes("خطأ")) ||
+            (choices[1].getValue().includes("صح") && choices[0].getValue().includes("خطأ"))) {
+            type = "binary"
+            //question type
+            sheet.getRange(question_row, column++).setValue(type)
+            //description
+            sheet.getRange(question_row, column++).setValue("")
+            //choices count
+            sheet.getRange(question_row, column++).setValue("")
+            addBinaryChoice(sheet, choices);
+            return
+        }
+    }
+
+
+    //question type
+    sheet.getRange(question_row, column++).setValue(type)
+    //description
+    sheet.getRange(question_row, column++).setValue("")
+    //choices count
+    sheet.getRange(question_row, column++).setValue(choices.length)
+    addMultipleChoices(sheet, column, choices);
+    question_row++
+}
+
+function insertCheckBoxQuestion(sheet, question) {
+    let coloumn = 1
+    let title = formatQuestionTitle(question.getTitle())
+    let points = question.getPoints()
+    if (points === 0) {
+        return
+    }
+
+    let type = "CHECKBOX"
+    let choices = question.getChoices()
+
+    coloumn = addRowBasicInfo(sheet, coloumn, title, points);
+    //question type
+    sheet.getRange(question_row, coloumn++).setValue(type)
+    //description
+    sheet.getRange(question_row, coloumn++).setValue("")
+    //choices count
+    sheet.getRange(question_row, coloumn++).setValue(choices.length)
+
+    addCheckBoxChoice(sheet, coloumn, choices);
+
+    question_row++
+}
+
+function addBinaryChoice(sheet, choices) {
+    choices.forEach(function (choice) {
+        if (choice.isCorrectAnswer()) {
+            if (choice.getValue().includes("صح")) {
+                sheet.getRange(question_row, right_answer_index).setValue("صح")
+            } else {
+                sheet.getRange(question_row, right_answer_index).setValue("خطأ")
             }
         }
-            choices = question.getChoices();
+    })
+    question_row++
+}
 
-            //title
-            sheet.getRange(question_position, answers_position++).setValue(title);
-            //points
-            sheet.getRange(question_position, answers_position++).setValue(points);
-            //lesson or subject
-            sheet.getRange(question_position, answers_position++).setValue("subject");
-            //path
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.study_year_id);
-            //term
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.term_id);
-            //subject
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.subjects[0].name);
-            //lesson
-            sheet.getRange(question_position, answers_position++).setValue("");
+function addCheckBoxChoice(sheet, coloumn, choices) {
+    choices.forEach(function (choice, index) {
+        sheet.getRange(question_row, coloumn++).setValue(choice.getValue())
+        if (choice.isCorrectAnswer()) {
+            let correct_answer = sheet.getRange(question_row, right_answer_index).getValue()
+            sheet.getRange(question_row, right_answer_index).setValue(correct_answer + (index + 1) + ",")
+        }
+    })
+}
 
+function addMultipleChoices(sheet, column, choices) {
+    choices.forEach(function (choice, index) {
+        sheet.getRange(question_row, column++).setValue(choice.getValue())
+        if (choice.isCorrectAnswer()) {
+            sheet.getRange(question_row, right_answer_index).setValue(index + 1)
+        }
+    })
+}
 
-            if (choices.length === 2) {
-                if ((choices[0].getValue().includes("صح") && choices[1].getValue().includes("خطأ")) ||
-                    (choices[1].getValue().includes("صح") && choices[0].getValue().includes("خطأ"))) {
-                    type = "binary"
-                    //question type
-                    sheet.getRange(question_position, answers_position++).setValue(type);
-                    //description
-                    sheet.getRange(question_position, answers_position++).setValue("");
-                    //choices count
-                    sheet.getRange(question_position, answers_position++).setValue("");
-                    choices.forEach(function (choice) {
-                        if (choice.isCorrectAnswer()) {
-                            if (choice.getValue().includes("صح")) {
-                                sheet.getRange(question_position, right_answer_index).setValue("صح");
-                            } else {
-                                sheet.getRange(question_position, right_answer_index).setValue("خطأ");
-                            }
-                        }
-                    });
-                    question_position++;
-                    return;
-                }
-            }
+function formatQuestionTitle(title) {
+    return title.replace(/\(\d+\)-|\(\d+\) -|\(\d+\)|\d+ -|\d+-|\d+/, '').trim()
+}
 
-
-            //question type
-            sheet.getRange(question_position, answers_position++).setValue(type);
-            //description
-            sheet.getRange(question_position, answers_position++).setValue("");
-            //choices count
-            sheet.getRange(question_position, answers_position++).setValue(choices.length);
-            choices.forEach(function (choice, index) {
-                sheet.getRange(question_position, answers_position++).setValue(choice.getValue());
-                if (choice.isCorrectAnswer()) {
-                    sheet.getRange(question_position, right_answer_index).setValue(index + 1);
-                }
-            });
-
-            question_position++;
-            break;
-        case FormApp.ItemType.CHECKBOX:
-            type = "CHECKBOX"
-            question = el.asCheckboxItem()
-            points = question.getPoints();
-            if (points === 0) {
-                return;
-            }
-
-            title = question.getTitle();
-            choices = question.getChoices();
-
-
-            //title
-            sheet.getRange(question_position, answers_position++).setValue(title);
-            //points
-            sheet.getRange(question_position, answers_position++).setValue(points);
-            //lesson or subject
-            sheet.getRange(question_position, answers_position++).setValue("subject");
-            //path
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.study_year_id);
-            //term
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.term_id);
-            //subject
-            sheet.getRange(question_position, answers_position++).setValue(fst_year_fst_term_xls.subjects[0].name);
-            //lesson
-            sheet.getRange(question_position, answers_position++).setValue("");
-            //question type
-            sheet.getRange(question_position, answers_position++).setValue(type);
-            //description
-            sheet.getRange(question_position, answers_position++).setValue("");
-            //choices count
-            sheet.getRange(question_position, answers_position++).setValue(choices.length);
-            choices.forEach(function (choice, index) {
-                sheet.getRange(question_position, answers_position++).setValue(choice.getValue());
-                if (choice.isCorrectAnswer()) {
-                    let correct_answer = sheet.getRange(question_position, right_answer_index).getValue();
-                    sheet.getRange(question_position, right_answer_index).setValue(correct_answer + (index + 1) + ",");
-                }
-            });
-
-            question_position++;
-            break;
-    }
+function getFormId(formUrl) {
+    return formUrl.split("/")[5]
 }
 
 
