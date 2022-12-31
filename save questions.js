@@ -214,7 +214,7 @@ let study_years = [
 
 let sheet = SpreadsheetApp.openById('1pudIQM8NJph3wsQuPq6kbKgT-a0Ef9czbXSm4n-atHE').getSheets()[0]
 // variables for putting the questions and answers in the right position
-let question_row = 1
+let question_row = 1033
 let right_answer_index = 17
 
 // main function to run
@@ -336,7 +336,7 @@ function insertMul(studyYearSubjects, subject, question) {
     if (choices.length === 2) {
         if ((choices[0].getValue().includes("صح") && choices[1].getValue().replace(/أ/, "ا").includes("خطا")) ||
             (choices[0].getValue().replace(/أ/, "ا").includes("خطا") && choices[1].getValue().includes("صح")) ||
-            (choices[1].getValue().includes("صواب") && choices[0].getValue().replace(/أ/, "ا").includes("خطا").includes("خطا")) ||
+            (choices[0].getValue().includes("صواب") && choices[1].getValue().replace(/أ/, "ا").includes("خطا"))||
             (choices[0].getValue().replace(/أ/, "ا").includes("خطا") && choices[1].getValue().includes("صواب"))) {
             type = 2
             //question type
