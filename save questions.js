@@ -400,16 +400,23 @@ function addBinaryChoice(choices) {
     question_row++
 }
 
+function formatChoice(choice) {
+    let choiceValue = choice.getValue().replace(/‏/, "").trim()
+    if (choiceValue.startsWith("-")) {
+        choiceValue = choiceValue.substring(1).trim()
+    }
+    if (choiceValue.startsWith("--")) {
+        choiceValue = choiceValue.substring(2).trim()
+    }
+    if (choiceValue.startsWith("_")) {
+        choiceValue = choiceValue.substring(1).trim()
+    }
+    return choiceValue;
+}
+
 function addCheckBoxChoice(sheet, coloumn, choices) {
     choices.forEach(function (choice, index) {
-        let choiceValue = choice.getValue()
-        //delete first - or a-- from choiceValue
-        if (choiceValue.startsWith("-")) {
-            choiceValue = choiceValue.substring(1).trim()
-        }
-        if (choiceValue.startsWith("--")) {
-            choiceValue = choiceValue.substring(2).trim()
-        }
+        let choiceValue = formatChoice(choice);
         sheet.getRange(question_row, coloumn++).setValue(choiceValue)
         if (choice.isCorrectAnswer()) {
             let correct_answers = sheet.getRange(question_row, right_answer_index).getValue()
@@ -424,16 +431,7 @@ function addCheckBoxChoice(sheet, coloumn, choices) {
 
 function addMultipleChoices(column, choices) {
     choices.forEach(function (choice, index) {
-        let choiceValue = choice.getValue()
-        //delete first - or a-- from choiceValue
-        if (choiceValue.startsWith("-")) {
-            choiceValue = choiceValue.substring(1).trim()
-        }
-        if (choiceValue.startsWith("--")) {
-            choiceValue = choiceValue.substring(2).trim()
-        }
-
-
+        let choiceValue = formatChoice(choice);
         sheet.getRange(question_row, column++).setValue(choiceValue)
         if (choice.isCorrectAnswer()) {
             sheet.getRange(question_row, right_answer_index).setValue(index + 1)
