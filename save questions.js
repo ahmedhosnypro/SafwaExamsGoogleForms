@@ -165,9 +165,10 @@ let study_years = [
         term_id: 1,
         added: false,
         subjects: [
-            // {
-            //     safwa_name: "التربية والسلوك",
-            //     form_url: "https://docs.google.com/forms/d/15tO312wAD-mOzWKGoibor_QLe0Pymv5_CCJ_aJrk-5Y/edit" },
+            {
+                safwa_name: "التربية والسلوك",
+                form_url: "https://docs.google.com/forms/d/15tO312wAD-mOzWKGoibor_QLe0Pymv5_CCJ_aJrk-5Y/edit"
+            },
             {
                 safwa_name: "العقيدة",
                 form_url: "https://docs.google.com/forms/d/1NGkLEHZhsgzKReJVlhe2JHHAuMK6gZOx6mm3cqKyBfg/edit"
@@ -272,9 +273,6 @@ function insertHeader() {
 // Iterate over all questions
 function extractFormQuestions(studyYearSubjects, subject) {
     let form = FormApp.openById(getFormId(subject.form_url))
-    //create new spreadsheet with form name
-    let ssNewUrl = SpreadsheetApp.create(form.getTitle()).getUrl()
-    var sheet = SpreadsheetApp.openByUrl(ssNewUrl).getSheets()[0]
 
     form.getItems().forEach((item) => {
         switch (item.getType()) {
@@ -402,15 +400,27 @@ function addBinaryChoice(choices) {
 
 function formatChoice(choice) {
     let choiceValue = choice.getValue().replace(/‏/, "").trim()
-    if (choiceValue.startsWith("-")) {
-        choiceValue = choiceValue.substring(1).trim()
-    }
     if (choiceValue.startsWith("--")) {
         choiceValue = choiceValue.substring(2).trim()
+    }
+    if (choiceValue.startsWith("-")) {
+        choiceValue = choiceValue.substring(1).trim()
     }
     if (choiceValue.startsWith("_")) {
         choiceValue = choiceValue.substring(1).trim()
     }
+    if (choiceValue.startsWith("أ.") || choiceValue.startsWith("ب.") || choiceValue.startsWith("ج.") || choiceValue.startsWith("د.") ||
+        choiceValue.startsWith("أ .") || choiceValue.startsWith("ب .") || choiceValue.startsWith("ج .") || choiceValue.startsWith("د .") ||
+        choiceValue.startsWith("أ-") || choiceValue.startsWith("ب-") || choiceValue.startsWith("ج-") || choiceValue.startsWith("د-") ||
+        choiceValue.startsWith("أ -") || choiceValue.startsWith("ب -") || choiceValue.startsWith("ج -") || choiceValue.startsWith("د -") ||
+        choiceValue.startsWith("1.") || choiceValue.startsWith("2.") || choiceValue.startsWith("3.") || choiceValue.startsWith("4.") ||
+        choiceValue.startsWith("1 .") || choiceValue.startsWith("2 .") || choiceValue.startsWith("3 .") || choiceValue.startsWith("4 .") ||
+        choiceValue.startsWith("1-") || choiceValue.startsWith("2-") || choiceValue.startsWith("3-") || choiceValue.startsWith("4-") ||
+        choiceValue.startsWith("1 -") || choiceValue.startsWith("2 -") || choiceValue.startsWith("3 -") || choiceValue.startsWith("4 -")
+    ) {
+        choiceValue = choiceValue.substring(2).trim()
+    }
+
     return choiceValue;
 }
 
